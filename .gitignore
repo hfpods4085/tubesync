@@ -1,0 +1,6 @@
+data/
+.gitlint
+.hadolint.yaml
+.taplo.toml
+.prettierrc
+.pre-commit-config.yaml

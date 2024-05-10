@@ -1,0 +1,80 @@
+---
+name: Schedule
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/scheduler.yml
+      - tubesync/**
+      - environment.yml
+  schedule:
+    - cron: '*/5 * * * *'
+
+permissions: write-all
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        id: cache-ffmpeg
+        with:
+          path: |
+            ~/.local/bin/ffmpeg
+            ~/.local/bin/ffprobe
+          key: ffmpeg
+
+      - name: Install ffmpeg
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          if [ ! -x "$HOME/.local/bin/ffmpeg" ]; then
+          mkdir -p ~/.local/bin
+          curl -fsSL -o /tmp/ffmpeg.tar.gz "https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz"
+          tar --extract --strip-components=1 --file /tmp/ffmpeg.tar.gz -C ~/.local/bin/ --wildcards '*/ffmpeg' '*/ffprobe'
+          fi
+
+      - uses: mamba-org/setup-micromamba@v1
+        name: Setup micromamba environment
+        with:
+          micromamba-version: latest
+          environment-file: environment.yml
+          environment-name: ci
+          generate-run-shell: true
+          cache-environment: true
+          cache-downloads: false
+          log-level: info
+
+      - name: Fetch processed data
+        id: data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download data -D data --clobber --pattern youtube-chenyifaer.json
+          sha1sum data/youtube-chenyifaer.json > data/youtube-chenyifaer.json.sha1
+
+      - name: Sync
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VIDEOGRAM_TG_SESSION_STRING: ${{ secrets.VIDEOGRAM_TG_SESSION_STRING }}
+          VIDEOGRAM_YT_LANG: ${{ secrets.VIDEOGRAM_YT_LANG }}
+        shell: micromamba-shell {0}
+        run: |
+          python tubesync/youtube.py --database data/youtube-chenyifaer.json
+
+      - name: Upload release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! sha1sum -c data/youtube-chenyifaer.json.sha1 &> /dev/null; then
+          gh release upload --clobber data data/youtube-chenyifaer.json
+          fi

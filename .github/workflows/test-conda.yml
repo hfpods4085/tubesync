@@ -1,0 +1,43 @@
+---
+name: Test Conda
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - environment.yml
+      - .github/workflows/test-conda.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  micromamba:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mamba-org/setup-micromamba@v1
+        name: Setup micromamba environment
+        with:
+          micromamba-version: latest
+          environment-file: environment.yml
+          environment-name: ci
+          generate-run-shell: true
+          cache-environment: true
+          cache-downloads: false
+          log-level: info
+
+      - name: List packages in micromamba environment
+        shell: micromamba-shell {0}
+        run: |
+          micromamba list
+          pip list
+
+      - name: Run custom command in micromamba environment
+        shell: micromamba-shell {0}
+        run: |-
+          python -c "import os; print(os.uname())"

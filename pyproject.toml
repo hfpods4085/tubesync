@@ -1,0 +1,64 @@
+[tool.poetry]
+authors = ["hfpods4085 <166705635+hfpods4085@users.noreply.github.com>"]
+description = ""
+name = "tubesync"
+readme = "README.md"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+dateparser = ">=1.2.0"
+feedparser = ">=6.0.11"
+python = "^3.11"
+videogram = { url = "https://github.com/hfpods4085/pods/releases/download/videogram/videogram-0.1.0.tar.gz" }
+
+
+[tool.poetry.group.dev.dependencies]
+ipdb = ">=0.13.13"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+# https://docs.astral.sh/ruff/settings
+[tool.ruff]
+cache-dir = '~/.cache/ruff'
+force-exclude = true
+indent-width = 4
+line-length = 200
+output-format = 'grouped'
+respect-gitignore = true
+show-fixes = true
+target-version = 'py311'
+
+[tool.ruff.format]
+indent-style = 'space'
+line-ending = 'lf'
+quote-style = 'double'
+
+[tool.ruff.lint]
+ignore = ['ANN', 'PTH', 'T20', 'ERA', 'C90', 'D1', 'INP001', 'E203', 'E266', 'E501', 'EXE001', 'PD901', 'PGH003', 'S101', 'S301', 'UP009', 'COM812', 'ISC001', 'PLR2004', 'S311']
+ignore-init-module-imports = true
+select = ['ALL']
+
+[tool.ruff.lint.pydocstyle]
+convention = 'google'
+
+# https://lyz-code.github.io/yamlfix/#configuration
+[tool.yamlfix]
+allow_duplicate_keys = false
+comments_min_spaces_from_content = 2
+comments_require_starting_space = true
+comments_whitelines = 1
+explicit_start = 1
+indent_mapping = 2
+indent_offset = 2
+indent_sequence = 4
+line_length = 200
+none_representation = ''
+preserve_quotes = true
+quote_basic_values = false
+quote_keys_and_basic_values = false
+quote_representation = '"'
+section_whitelines = 1
+sequence_style = 'keep_style'
+whitelines = 1

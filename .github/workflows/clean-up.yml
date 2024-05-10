@@ -1,0 +1,26 @@
+---
+name: Cleanup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 0 * * *
+
+permissions: write-all
+
+jobs:
+  workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete success runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          retain_days: 1
+          keep_minimum_runs: 1
+          delete_run_by_conclusion_pattern: success
+
+      - name: Delete old workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          retain_days: 1
+          keep_minimum_runs: 10

@@ -1,0 +1,45 @@
+---
+name: Test Poetry
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - poetry.lock
+      - .github/workflows/test-poetry.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  poetry:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+
+      - name: Install python env
+        run: poetry install --only main --no-root
+
+      - name: List packages
+        run: |
+          poetry run pip list
+
+      - name: Other commands
+        run: |-
+          poetry run python -c "import os; print(os.uname())"
