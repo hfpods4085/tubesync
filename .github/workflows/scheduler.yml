@@ -61,6 +61,19 @@ jobs:
           gh release download data -D data --clobber --pattern youtube-chenyifaer.json
           sha1sum data/youtube-chenyifaer.json > data/youtube-chenyifaer.json.sha1
 
+      - name: Maximize disk space
+        run: |
+          # Remove .Net
+          sudo rm -rf /usr/share/dotnet
+          # Remove Android
+          sudo rm -rf /usr/local/lib/android
+          # Remove Haskell
+          sudo rm -rf /opt/ghc
+          # Remove CodeQL
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          # Remove docker images
+          sudo docker image prune --all --force
+
       - name: Sync
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
