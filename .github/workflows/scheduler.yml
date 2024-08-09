@@ -11,7 +11,7 @@ on:
       - tubesync/**
       - environment.yml
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: 30 * * * *
 
 permissions: write-all
 concurrency:
@@ -22,9 +22,10 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@main
+      - uses: gautamkrishnar/keepalive-workflow@v2
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@main
         id: cache-ffmpeg
         with:
           path: |
@@ -42,27 +43,7 @@ jobs:
           tar --extract --strip-components=1 --file /tmp/ffmpeg.tar.gz -C ~/.local/bin/ --wildcards '*/ffmpeg' '*/ffprobe'
           fi
 
-      - uses: actions/cache@v4
-        id: cache-proxy
-        with:
-          path: |
-            ~/.local/bin/v2ray
-            ~/.local/bin/config.json
-          key: ${{ runner.os }}-proxy
-
-      - name: Install proxy
-        if: steps.cache-proxy.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          if [ ! -x "$HOME/.local/bin/v2ray" ]; then
-          mkdir -p ~/.local/bin
-          curl -fsSL -o /tmp/v2ray.zip "https://github.com/v2fly/v2ray-core/releases/download/v4.45.2/v2ray-linux-64.zip"
-          unzip -d /tmp /tmp/v2ray.zip
-          mv /tmp/v2ray ~/.local/bin
-          curl -fsSL -o ~/.local/bin/config.json "${{ secrets.PROXY_URL }}"
-          fi
-
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@main
         name: Setup micromamba environment
         with:
           micromamba-version: latest
@@ -70,6 +51,7 @@ jobs:
           environment-name: ci
           generate-run-shell: true
           cache-environment: true
+          cache-environment-key: ${{ hashFiles('**/requirements.txt') }}
           cache-downloads: false
           log-level: info
 
@@ -83,6 +65,7 @@ jobs:
 
       - name: Maximize disk space
         run: |
+          df -h
           # Remove .Net
           sudo rm -rf /usr/share/dotnet
           # Remove Android
@@ -93,11 +76,7 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           # Remove docker images
           sudo docker image prune --all --force
-
-      - name: Set proxy
-        shell: bash
-        run: |-
-          nohup ~/.local/bin/v2ray -c ~/.local/bin/config.json > /dev/null 2>&1 &
+          df -h
 
       - name: Sync
         env:
@@ -105,9 +84,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VIDEOGRAM_TG_SESSION_STRING: ${{ secrets.VIDEOGRAM_TG_SESSION_STRING }}
           VIDEOGRAM_YT_LANG: ${{ secrets.VIDEOGRAM_YT_LANG }}
-          VIDEOGRAM_PROXY: socks5://127.0.0.1:7890
+          VIDEOGRAM_YTDLP_PROXY: ${{ secrets.VIDEOGRAM_YTDLP_PROXY }}
         shell: micromamba-shell {0}
         run: |
+          pip list
           python tubesync/youtube.py --database data/youtube-chenyifaer.json
 
       - name: Upload release
