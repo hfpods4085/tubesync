@@ -1,4 +1,4 @@
-FROM alpine:3.19 as ffmpeg
+FROM alpine:3.19 AS ffmpeg
 ADD https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz /ffmpeg.tar.xz
 RUN tar --strip-components 1 -xJf /ffmpeg.tar.xz
 
