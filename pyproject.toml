@@ -8,8 +8,8 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 dateparser = ">=1.2.0"
 feedparser = ">=6.0.11"
-python = "^3.11"
-videogram = { url = "https://github.com/hfpods4085/pods/releases/download/videogram/videogram-0.1.0.tar.gz" }
+python = "^3.12"
+videogram = { url = "https://github.com/hfpods4085/pods/releases/download/videogram/videogram-0.4.7.tar.gz" }
 
 
 [tool.poetry.group.dev.dependencies]
@@ -28,7 +28,7 @@ line-length = 200
 output-format = 'grouped'
 respect-gitignore = true
 show-fixes = true
-target-version = 'py311'
+target-version = 'py312'
 
 [tool.ruff.format]
 indent-style = 'space'
